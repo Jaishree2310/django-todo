@@ -1,64 +1,107 @@
 {% extends 'todos/base.html' %}
 
+
 {% block title %}
 <title>Todo list</title>
 {% endblock %}
 
+
 {% block content %}
 <div class="container">
+ <!-- title row -->
+ <div class="row">
+   <div class="offset-md-2 col-lg-9">
+     <div class="page-header">
+       <h1>Todo List</h1>
+     </div>
+   </div>
+ </div>
 
-  <!-- title row -->
-  <div class="row">
-    <div class="offset-md-2 col-lg-9">
-      <div class="page-header">
-        <h1>
-          Todo List
-        </h1>
-      </div>
-    </div>
-  </div>
 
-  <!-- Add a todo row -->
-  <div class="row">
-    <div class="offset-md-2 col-lg-9">
-      <form method="post" action="{% url 'todos:add' %}">
-        {% csrf_token %}
-        <div class="form-row">
-          <div class="col-md-6">
-            <input type="text" class="form-control" name="title" placeholder="Do laundry" required>
-          </div>
-          <div class="col-md-6">
-            <button type="submit" name="submit" class="btn btn-outline-primary">
-              Add
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-  <hr />
+ <!-- Search bar -->
+ <div class="row mb-3">
+   <div class="offset-md-2 col-lg-5">
+     <input type="text" id="searchInput" class="form-control" placeholder="Search todos...">
+   </div>
+ </div>
 
-  <!-- todo list row -->
-  <div class="row">
-    <div class="offset-md-2 col-lg-6">
-      <div class="list-group">
-        {% for todo in todo_list %}
-        <div class="list-group-item {% if todo.isCompleted %} todo-complete {% endif %}">
-          <form style="display: inline;" method="post" action="{% url 'todos:update' todo.id %}">
-            {% csrf_token %}
-            <input type="checkbox" name="isCompleted" onchange="this.form.submit()" {% if todo.isCompleted %} checked
-              {% endif %} class="todo-status-checkbox"
-              title="{% if not todo.isCompleted %} mark as done {% else %} mark undone {% endif %}">
-          </form>
-          {{ todo.title }}
-          <a href="{% url 'todos:delete' todo.id %}" title="Delete">
-            <i class="far fa-trash-alt"></i>
-          </a>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+
+ <!-- Add a todo row -->
+ <div class="row">
+   <div class="offset-md-2 col-lg-9">
+     <form method="post" action="{% url 'todos:add' %}">
+       {% csrf_token %}
+       <div class="form-row">
+         <div class="col-md-6">
+           <input type="text" class="form-control" name="title" placeholder="Do laundry" required>
+         </div>
+         <div class="col-md-6">
+           <button type="submit" name="submit" class="btn btn-outline-primary">
+             Add
+           </button>
+         </div>
+       </div>
+     </form>
+   </div>
+ </div>
+ <hr />
+
+
+ <!-- todo list row -->
+ <div class="row">
+   <div class="offset-md-2 col-lg-6">
+     <div id="todoList" class="list-group">
+       {% for todo in todo_list %}
+       <div class="list-group-item todo-item {% if todo.isCompleted %} todo-complete {% endif %}">
+         <form style="display: inline;" method="post" action="{% url 'todos:update' todo.id %}">
+           {% csrf_token %}
+           <input type="checkbox" name="isCompleted" onchange="this.form.submit()" {% if todo.isCompleted %} checked {% endif %} class="todo-status-checkbox" title="{% if not todo.isCompleted %} mark as done {% else %} mark undone {% endif %}">
+         </form>
+         <span class="todo-title">{{ todo.title }}</span>
+         <a href="{% url 'todos:delete' todo.id %}" title="Delete" class="float-right">
+           <i class="far fa-trash-alt"></i>
+         </a>
+       </div>
+       {% endfor %}
+     </div>
+     <div id="noResults" style="display: none;">No todos found matching your search.</div>
+   </div>
+ </div>
 </div>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+ const searchInput = document.getElementById('searchInput');
+ const todoList = document.getElementById('todoList');
+ const noResults = document.getElementById('noResults');
+ const todoItems = todoList.getElementsByClassName('todo-item');
+
+
+ searchInput.addEventListener('input', function() {
+   const searchQuery = this.value.toLowerCase();
+   let hasResults = false;
+
+
+   Array.from(todoItems).forEach(function(item) {
+     const title = item.querySelector('.todo-title').textContent.toLowerCase();
+     if (title.includes(searchQuery)) {
+       item.style.display = '';
+       hasResults = true;
+     } else {
+       item.style.display = 'none';
+     }
+   });
+
+
+   if (hasResults) {
+     todoList.style.display = '';
+     noResults.style.display = 'none';
+   } else {
+     todoList.style.display = 'none';
+     noResults.style.display = 'block';
+   }
+ });
+});
+</script>
 {% endblock %}
